@@ -3,6 +3,10 @@ from app.services.processFile import ProcessFile
 
 def mainRouters(app, auxDB):
     @app.route('/', methods=['GET'])
+    def default():
+        redirect('/swagger')
+    
+    @app.route('/home', methods=['GET'])
     def home():
         return render_template('index.html')
     

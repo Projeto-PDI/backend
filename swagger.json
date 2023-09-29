@@ -1,0 +1,78 @@
+{
+    "swagger": "2.0",
+    "info": {
+      "title": "PDI Transporte",
+      "description": "Backend do projeto de PDI da equipe de transporte.",
+      "version": "1.0"
+    },
+    "basePath": "/",
+    "schemes": [
+      "http"
+    ],
+    "consumes": [
+      "application/json"
+    ],
+    "produces": [
+      "application/json"
+    ],
+    "paths": {
+      "/home": {
+        "get": {
+          "summary": "Tela de upload de arquivo",
+          "produces": [
+            "application/html"
+          ],
+          "responses": {
+            "200": {
+              "description": "Successful response.",
+              "schema": {
+                "type": "file"
+              }
+            }
+          }
+        }
+      },
+      "/upload": {
+        "post": {
+          "summary": "Upload de arquivo",
+          "produces": [
+            "application/json"
+          ],
+          "parameters": {
+            "content": {
+                "multipart/form-data":{
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "fileName": {
+                                "type": "string",
+                                "format": "binary"
+                            }
+                        }
+                    }
+                }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Successful response.",
+              "schema": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "length": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

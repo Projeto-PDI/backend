@@ -2,3 +2,4 @@ flask
 pymongo
 pandas
 python-dotenv
+flask_swagger_ui
