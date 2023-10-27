@@ -19,3 +19,7 @@ def mainRouters(app, auxDB):
             data = ProcessFile().getInfo(file=file)
 
             return jsonify(data)
+    
+    @app.route('/test', methods=['GET'])
+    def testBD():
+        return jsonify(auxDB.get_all_register())

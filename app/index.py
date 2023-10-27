@@ -7,7 +7,7 @@ from app.config.database import DatabaseBuilder
 def createApp():
     # Config of app and Database
     app = Flask(__name__)
-    auxDB = DatabaseBuilder().build()
+    auxDB = DatabaseBuilder()
 
     # Configure Swagger UI
     SWAGGER_URL = '/swagger'
