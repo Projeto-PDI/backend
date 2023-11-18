@@ -20,6 +20,14 @@ def mainRouters(app, auxDB):
 
             return jsonify(data)
     
-    @app.route('/test', methods=['GET'])
+    @app.route('/data', methods=['GET'])
     def testBD():
         return jsonify(auxDB.get_all_register())
+    
+    @app.route('/createData', methods=['GET'])
+    def createData():
+        try:
+            auxDB.create_register()
+            return jsonify({"message": "Data created with success!"})
+        except Exception as e:
+            return jsonify({"message": f"Error: {e}!"})
