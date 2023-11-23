@@ -31,3 +31,19 @@ def mainRouters(app, auxDB):
             return jsonify({"message": "Data created with success!"})
         except Exception as e:
             return jsonify({"message": f"Error: {e}!"})
+    
+    @app.route('/seed', methods=['GET'])
+    def seedData():
+        try:
+            auxDB.seed_registers(50) 
+            return jsonify({"message": "Seed with success!"})
+        except Exception as e:
+            return jsonify({"message": f"Error: {e}!"})
+        
+    @app.route('/viewData', methods=['GET'])
+    def view_data():
+        try:
+            registers = auxDB.get_all_register()
+            return render_template('view_data.html', registers=registers)
+        except Exception as e:
+            return render_template('error.html', message=f"Error: {e}!")

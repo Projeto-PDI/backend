@@ -3,6 +3,9 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, D
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app.config.models.registerModel import RegisterModel
+import random
+from datetime import datetime, timedelta
+import json
 
 Base = declarative_base()
 
@@ -50,3 +53,25 @@ class DatabaseBuilder:
         registers = [RegisterModel(item).to_dict() for item in query]
 
         return registers
+    
+    def seed_registers(self, num_entries=10):
+        categories = ['Carro', 'Moto', 'Bicicleta']
+        for _ in range(num_entries):
+            start_time = datetime.now() - timedelta(days=random.randint(0, 365))
+            end_time = start_time + timedelta(hours=random.randint(1, 12))
+            
+            new_register = Registers(
+                token=''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=8)),
+                category=random.choice(categories),
+                points=json.dumps({"x": random.randint(0, 100), "y": random.randint(0, 100)}),
+                infractions=json.dumps([random.choice(['Speeding', 'Red Light', 'Stop Sign']) for _ in range(random.randint(0, 5))]),
+                average_speed=random.uniform(20.0, 120.0),
+                has_helmet=random.choice([True, False]),
+                license_plate=''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=7)),
+                start_time=start_time,
+                end_time=end_time
+            )
+
+            self.session.add(new_register)
+        self.session.commit()
+

@@ -4,3 +4,4 @@ mysql-connector-python
 pandas
 python-dotenv
 flask_swagger_ui
+datetime
