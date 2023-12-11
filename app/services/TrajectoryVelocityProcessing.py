@@ -26,6 +26,7 @@ class TrajectoryVelocityProcessing:
         self.speed_history = defaultdict(lambda: [])
         self.start_time = defaultdict(lambda: [])
         self.end_time = defaultdict(lambda: [])
+        self.classes_history = defaultdict(lambda: [])
 
     def estimatespeed(self, Location1, Location2):
         # Euclidean Distance Formula
@@ -82,30 +83,41 @@ class TrajectoryVelocityProcessing:
                 if success:
                     # Run YOLOv8 tracking on the frame, persisting tracks between frames
                     results = self.model.track(frame, persist=True)
+                    
+                    a = len(results[0])
+                    if a !=0:
+                        # Get the boxes and track IDs
+                        boxes = results[0].boxes.xywh.cpu()
+                        track_ids = results[0].boxes.id.int().cpu().tolist()
 
-                    # Get the boxes and track IDs
-                    boxes = results[0].boxes.xywh.cpu()
-                    track_ids = results[0].boxes.id.int().cpu().tolist()
+                        # Get Classes, names and confidences
+                        classes = results[0].boxes.cls.cpu().tolist()
+                        names = results[0].names
 
-                    # Plot the tracks
-                    for box, track_id in zip(boxes, track_ids):
-                        x, y, w, h = box
-                        track = self.track_history[track_id]
-                        speed = self.speed_history[track_id]
-                        track.append((float(x), float(y)))  # x, y center point
+                        # Plot the tracks
+                        for box, track_id, clas in zip(boxes, track_ids, classes):
+                            x, y, w, h = box
+                            track = self.track_history[track_id]
+                            track.append((float(x), float(y)))  # x, y center point
+                            
+                            speed = self.speed_history[track_id]
 
-                        st = self.start_time[track_id]
-                        if len(st) == 0:
-                            st.append(datetime.now())
-                        self.end_time[track_id] = datetime.now()
+                            tipo = self.classes_history[track_id]
+                            if len(tipo)== 0:
+                                tipo.append(names[clas])
 
-                        points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-                        teste = np.hstack(track).astype(np.int32)
+                            st = self.start_time[track_id]
+                            if len(st) == 0:
+                                st.append(datetime.now())
+                            self.end_time[track_id] = datetime.now()
 
-                        if len(teste) >= 4:
-                            obj_speed = self.estimatespeed([teste[len(teste) - 4], teste[len(teste) - 3]],
-                                                    [teste[len(teste) - 2], teste[len(teste) - 1]])
-                            speed.append(obj_speed)
+                            points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
+                            teste = np.hstack(track).astype(np.int32)
+
+                            if len(teste) >= 4:
+                                obj_speed = self.estimatespeed([teste[len(teste) - 4], teste[len(teste) - 3]],
+                                                        [teste[len(teste) - 2], teste[len(teste) - 1]])
+                                speed.append(obj_speed)
 
                 else:
                     # Break the loop if the end of the video is reached
@@ -117,6 +129,7 @@ class TrajectoryVelocityProcessing:
             results_data = {
                 'track_history': self.format_trajectories(), 
                 'speed_history': self.format_velocity(),
+                'classes_history': self.classes_history,
                 'start_time': self.start_time, 
                 'end_time': self.end_time
             }
