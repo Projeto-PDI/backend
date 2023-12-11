@@ -22,11 +22,12 @@ class Registers(Base):
 
 class DatabaseBuilder:
     def __init__(self):
-        engine = create_engine('mysql+mysqlconnector://root:123456@db:3306/pdi_transport', echo=True)
-        Base.metadata.create_all(engine)
+        print("s")
+        #engine = create_engine('mysql+mysqlconnector://root:123456@db:3306/pdi_transport', echo=True)
+        #Base.metadata.create_all(engine)
 
-        Session = sessionmaker(bind=engine)
-        self.session = Session()
+        #Session = sessionmaker(bind=engine)
+        #self.session = Session()
 
     def create_register(self):
         new_register = Registers(

@@ -1,5 +1,7 @@
 from flask import request, redirect, render_template, jsonify
-from app.services.processFile import ProcessFile
+from app.services.TrajectoryVelocityProcessing import TrajectoryVelocityProcessing
+
+data_processing = TrajectoryVelocityProcessing()
 
 def mainRouters(app, auxDB):
     @app.route('/', methods=['GET'])
@@ -14,9 +16,8 @@ def mainRouters(app, auxDB):
     def upload():
         if request.method == 'POST':
             file = request.files['file']
-            file.save(file.filename)
 
-            data = ProcessFile().getInfo(file=file)
+            data = data_processing.process(file)
 
             return jsonify(data)
     
