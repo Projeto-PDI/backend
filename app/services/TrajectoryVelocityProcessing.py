@@ -62,6 +62,57 @@ class TrajectoryVelocityProcessing:
                 
         return resultado
 
+    def format_start_time(self):
+        resultado = {}
+
+        for chave, valores in self.start_time.items():
+            if valores:
+                resultado[chave] = valores[0]
+            else:
+                resultado[chave] = ""
+
+        return resultado
+
+    def format_end_time(self):
+        resultado = {}
+
+        for chave, valores in self.end_time.items():
+            if valores:
+                resultado[chave] = valores[0]
+            else:
+                resultado[chave] = ""
+
+        return resultado
+
+    def format_classes(self):
+        resultado = {}
+
+        for chave, valores in self.classes_history.items():
+            if valores:
+                resultado[chave] = valores[0]
+            else:
+                resultado[chave] = ""
+
+        return resultado
+
+    def format_data_to_DB(self, input_data):
+        grouped_data = {}
+
+        for index in input_data['track_history']:
+            grouped_object = {
+                'trajetorias': input_data['track_history'][index],
+                'velocidade': input_data['speed_history'][index],
+                'tipo': input_data['classes_history'][index],
+                'start_time': input_data['start_time'][index],
+                'end_time': input_data['end_time'][index]
+            }
+
+            grouped_data[index] = grouped_object
+
+        result_array = list(grouped_data.values())
+
+        return result_array
+
     def process(self, video_data):
         try:
             # Cria um arquivo temporário para armazenar o conteúdo do vídeo
@@ -108,8 +159,8 @@ class TrajectoryVelocityProcessing:
 
                             st = self.start_time[track_id]
                             if len(st) == 0:
-                                st.append(datetime.now())
-                            self.end_time[track_id] = datetime.now()
+                                st.append(datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")) 
+                            self.end_time[track_id] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
 
                             points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
                             teste = np.hstack(track).astype(np.int32)
@@ -129,12 +180,14 @@ class TrajectoryVelocityProcessing:
             results_data = {
                 'track_history': self.format_trajectories(), 
                 'speed_history': self.format_velocity(),
-                'classes_history': self.classes_history,
-                'start_time': self.start_time, 
+                'classes_history': self.format_classes(),
+                'start_time': self.format_start_time(), 
                 'end_time': self.end_time
             }
+
+            output_data = self.format_data_to_DB(results_data)
             
-            return results_data
+            return output_data
         except:
             return {"error": "Erro ao processar vídeo"}
     

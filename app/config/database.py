@@ -54,22 +54,22 @@ class Capacetes(Base):
 class DatabaseBuilder:
     def __init__(self):
         engine = create_engine(
-            "mysql+mysqlconnector://root:123456@db:3306/pdi_transport", echo=True
+            "mysql+mysqlconnector://root:123456@localhost:3306/pdi_transport", echo=True
         )
         Base.metadata.create_all(engine)
 
         Session = sessionmaker(bind=engine)
         self.session = Session()
 
-    def create_trajectories(self, data):
-        registro_token = uuid.uuid4()
+    def create_trajectories(self, data, name):
+        registro_token = str(uuid.uuid4())
 
-        registro_db = Registros(token=registro_token, nome=data["nome"])
+        registro_db = Registros(token=registro_token, nome=name)
 
         veiculos_db = []
         trajetorias_db = []
-        for veiculo in data["veiculos"]:
-            veiculo_token = uuid.uuid4()
+        for veiculo in data:
+            veiculo_token = str(uuid.uuid4())
 
             veiculo_db = Veiculos(
                 token=veiculo_token,
@@ -82,7 +82,7 @@ class DatabaseBuilder:
             veiculos_db.append(veiculo_db)
 
             for trajetoria in veiculo["trajetorias"]:
-                trajetoria_token = uuid.uuid4()
+                trajetoria_token = str(uuid.uuid4())
 
                 trajetoria_db = Trajetorias(
                     token=trajetoria_token,
@@ -104,13 +104,13 @@ class DatabaseBuilder:
         self.session.commit()
 
     def create_helmet(self, data):
-        registro_token = uuid.uuid4()
+        registro_token = str(uuid.uuid4())
 
         registro_db = Registros(token=registro_token, nome=data["nome"])
 
         capacetes_db = []
         for capacetes in data["capacetes"]:
-            capacete_token = uuid.uuid4()
+            capacete_token = str(uuid.uuid4())
 
             capacete_db = capacetes(
                 token=capacete_token,
