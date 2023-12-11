@@ -5,9 +5,10 @@ class VeiculoModel:
     def __init__(self, object_instance):
         self.token = object_instance.token
         self.registro_token = object_instance.registro_token
-        self.initial_date = object_instance.initial_date
-        self.end_date = object_instance.end_date
+        self.start_time = object_instance.start_time
+        self.end_time = object_instance.end_time
         self.tipo = object_instance.tipo
+        self.velocidade = object_instance.velocidade
 
     def __str__(self):
         return json.dumps(self.__dict__)

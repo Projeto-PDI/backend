@@ -111,14 +111,14 @@ class DatabaseBuilder:
         registro_db = Registros(token=registro_token, nome=data["nome"])
 
         capacetes_db = []
-        for capacetes in data["capacetes"]:
+        for capacete in data["capacetes"]:
             capacete_token = str(uuid.uuid4())
 
-            capacete_db = capacetes(
+            capacete_db = Capacetes(
                 token=capacete_token,
                 registro_token=registro_token,
-                total_com_capacete=data["total_com_capacete"],
-                total_sem_capacete=data["total_sem_capacete"],
+                total_com_capacete=capacete["total_com_capacete"],
+                total_sem_capacete=capacete["total_sem_capacete"],
             )
 
             capacetes_db.append(capacete_db)
@@ -138,7 +138,7 @@ class DatabaseBuilder:
 
             veiculos_query = (
                 self.session.query(Veiculos)
-                .filter_by(token=registro_data["token"])
+                .filter_by(registro_token=registro_data["token"])
                 .all()
             )
 
