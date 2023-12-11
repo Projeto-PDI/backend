@@ -1,75 +1,87 @@
 {
-    "swagger": "2.0",
-    "info": {
-      "title": "PDI Transporte",
-      "description": "Backend do projeto de PDI da equipe de transporte.",
-      "version": "1.0"
-    },
-    "basePath": "/",
-    "schemes": [
-      "http"
-    ],
-    "consumes": [
-      "application/json"
-    ],
-    "produces": [
-      "application/json"
-    ],
-    "paths": {
-      "/home": {
-        "get": {
-          "summary": "Tela de upload de arquivo",
-          "produces": [
-            "application/html"
-          ],
-          "responses": {
-            "200": {
-              "description": "Successful response.",
-              "schema": {
-                "type": "file"
-              }
-            }
+  "swagger": "2.0",
+  "info": {
+    "title": "PDI Transporte",
+    "description": "Backend do projeto de PDI da equipe de transporte.",
+    "version": "1.0"
+  },
+
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "tags": [
+    {
+      "name": "Products API",
+      "description":"Rotas API"
+    }
+  ],
+
+  "paths": {
+    "/processar": {
+      "post": {
+        "tags": ["Processamento"],
+        "summary": "Faz o upload e processamento de vídeos e fotos",
+        "description": "Endpoint para upload de vídeos e fotos que serão processados e salvos no banco de dados.",
+        "consumes": ["multipart/form-data"],
+        "parameters": [
+          {
+            "name": "video",
+            "in": "formData",
+            "description": "Vídeo para upload",
+            "required": false,
+            "type": "file"
+          },
+          {
+            "name": "foto",
+            "in": "formData",
+            "description": "Foto para upload",
+            "required": false,
+            "type": "file"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Processamento e salvamento bem-sucedidos."
           }
         }
-      },
-      "/upload": {
-        "post": {
-          "summary": "Upload de arquivo",
-          "produces": [
-            "application/json"
-          ],
-          "parameters": {
-            "content": {
-                "multipart/form-data":{
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "fileName": {
-                                "type": "string",
-                                "format": "binary"
-                            }
-                        }
-                    }
-                }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Successful response.",
-              "schema": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "length": {
-                      "type": "string"
-                    },
-                    "type": {
-                      "type": "string"
-                    }
-              }
-            }
+      }
+    },
+    "/obter/trajetoria": {
+      "get": {
+        "tags": ["Resultados"],
+        "summary": "Obtém a trajetória em formato JSON",
+        "responses": {
+          "200": {
+            "description": "Trajetória obtida com sucesso."
+          }
+        }
+      }
+    },
+    "/obter/capacete": {
+      "get": {
+        "tags": ["Resultados"],
+        "summary": "Obtém informações se há capacete em formato JSON",
+        "responses": {
+          "200": {
+            "description": "Informações do capacete obtidas com sucesso."
+          }
+        }
+      }
+    },
+    "/obter/tipo": {
+      "get": {
+        "tags": ["Resultados"],
+        "summary": "Obtém o tipo em formato JSON",
+        "responses": {
+          "200": {
+            "description": "Tipo obtido com sucesso."
           }
         }
       }

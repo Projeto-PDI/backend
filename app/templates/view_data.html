@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Data</title>
+</head>
+<body>
+    <h1>Registers</h1>
+    <table border="1">
+        <tr>
+            <th>Token</th>
+            <th>Category</th>
+            <th>Points</th>
+            <th>Infractions</th>
+            <th>Average Speed</th>
+            <th>Has Helmet</th>
+            <th>License Plate</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+        </tr>
+        {% for register in registers %}
+        <tr>
+            <td>{{ register.token }}</td>
+            <td>{{ register.category }}</td>
+            <td>{{ register.points }}</td>
+            <td>{{ register.infractions }}</td>
+            <td>{{ register.average_speed }}</td>
+            <td>{{ register.has_helmet }}</td>
+            <td>{{ register.license_plate }}</td>
+            <td>{{ register.start_time }}</td>
+            <td>{{ register.end_time }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
