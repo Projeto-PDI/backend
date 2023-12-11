@@ -27,6 +27,7 @@ class Veiculos(Base):
     __tablename__ = "veiculos"
 
     token = Column(String(255), primary_key=True)
+    registro_token = Column(String(255))
     velocidade = Column(Float)
     tipo = Column(String(255))
     start_time = Column(DateTime)
@@ -54,7 +55,7 @@ class Capacetes(Base):
 class DatabaseBuilder:
     def __init__(self):
         engine = create_engine(
-            "mysql+mysqlconnector://root:123456@localhost:3306/pdi_transport", echo=True
+            "mysql+mysqlconnector://root:123456@db:3306/pdi_transport", echo=True
         )
         Base.metadata.create_all(engine)
 
@@ -73,6 +74,7 @@ class DatabaseBuilder:
 
             veiculo_db = Veiculos(
                 token=veiculo_token,
+                registro_token=registro_token,
                 velocidade=veiculo["velocidade"],
                 tipo=veiculo["tipo"],
                 start_time=veiculo["start_time"],
@@ -114,7 +116,7 @@ class DatabaseBuilder:
 
             capacete_db = capacetes(
                 token=capacete_token,
-                registro_token=data["registro_token"],
+                registro_token=registro_token,
                 total_com_capacete=data["total_com_capacete"],
                 total_sem_capacete=data["total_sem_capacete"],
             )
@@ -128,10 +130,8 @@ class DatabaseBuilder:
 
         self.session.commit()
 
-    def get_trajectories(self, video_name):
-        registro_query = (
-            self.session.query(Registros).filter_by(nome=video_name).first()
-        )
+    def get_register(self, name):
+        registro_query = self.session.query(Registros).filter_by(nome=name).first()
 
         if registro_query:
             registro_data = RegistroModel(registro_query).to_dict()
@@ -141,49 +141,52 @@ class DatabaseBuilder:
                 .filter_by(token=registro_data["token"])
                 .all()
             )
-            veiculos_data = []
 
-            for veiculo in veiculos_query:
-                veiculo_dict = VeiculoModel(veiculo).to_dict()
+            print(veiculos_query)
 
+            veiculos = [VeiculoModel(vei).to_dict() for vei in veiculos_query]
+
+            result = {
+                "registro_token": registro_data["token"],
+                "nome_registro": registro_data["nome"],
+                "veiculos": [],
+                "capacetes": [],
+            }
+
+            for veiculo in veiculos:
                 trajetorias_query = (
                     self.session.query(Trajetorias)
-                    .filter_by(veiculo_token=veiculo_dict["token"])
+                    .filter_by(veiculo_token=veiculo["token"])
                     .all()
                 )
+
+                print(trajetorias_query)
+
                 trajetorias_data = [
-                    TrajetoriaModel(trajetoria).to_dict()
-                    for trajetoria in trajetorias_query
+                    TrajetoriaModel(traj).to_dict() for traj in trajetorias_query
                 ]
 
-                veiculo_dict["trajetorias"] = trajetorias_data
-                veiculos_data.append(veiculo_dict)
+                veiculo_result = {
+                    "veiculo": veiculo,
+                    "trajetorias": trajetorias_data,
+                }
 
-            registro_data["veiculos"] = veiculos_data
-
-            return registro_data
-        else:
-            return None
-
-    def get_helmet(self, video_name):
-        registro_query = (
-            self.session.query(Registros).filter_by(nome=video_name).first()
-        )
-
-        if registro_query:
-            registro_data = RegistroModel(registro_query).to_dict()
+                result["veiculos"].append(veiculo_result)
 
             capacetes_query = (
                 self.session.query(Capacetes)
                 .filter_by(registro_token=registro_data["token"])
                 .all()
             )
+
             capacetes_data = [
                 CapaceteModel(capacete).to_dict() for capacete in capacetes_query
             ]
 
-            registro_data["capacetes"] = capacetes_data
+            result["capacetes"] = capacetes_data
 
-            return registro_data
+            print("resultado: ", result)
+
+            return result
         else:
             return None
