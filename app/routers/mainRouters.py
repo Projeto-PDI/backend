@@ -1,7 +1,12 @@
 from flask import request, redirect, jsonify, render_template
-from app.services.TrajectoryVelocityProcessing import TrajectoryVelocityProcessing
+from app.services.TrajectoryVelocityProcessing import (
+    TrajectoryVelocityProcessing,
+    HelmetProcessing,
+)
+import io
 
-data_processing = TrajectoryVelocityProcessing()
+trajectories_processing = TrajectoryVelocityProcessing()
+helmet_processing = HelmetProcessing()
 
 
 def mainRouters(app, auxDB):
@@ -19,12 +24,20 @@ def mainRouters(app, auxDB):
             name = request.form["name"]
             file = request.files["file"]
 
-            data = data_processing.process(file)
-            auxDB.create_trajectories(data, name)
+            file_copy_1 = io.BytesIO(file.read())
+            file_copy_2 = io.BytesIO(file.read())
 
-            return jsonify(data)
+            traj_data = trajectories_processing.process(file_copy_1)
+            helmet_data = helmet_processing.process(file_copy_2)
+
+            registro_token = auxDB.create_trajectories(traj_data, name)
+            auxDB.create_helmet(helmet_data, registro_token)
+
+            return jsonify(registro_token)
         except Exception as e:
-            return jsonify({"message": f"Error: {e}!"})
+            return jsonify(
+                {"message": f"Error: {e}, me ajuda por favor: {helmet_data}!"}
+            )
 
     @app.route("/register/<name>", methods=["GET"])
     def get(name):

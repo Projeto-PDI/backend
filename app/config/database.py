@@ -105,28 +105,19 @@ class DatabaseBuilder:
 
         self.session.commit()
 
-    def create_helmet(self, data):
-        registro_token = str(uuid.uuid4())
+        return registro_token
 
-        registro_db = Registros(token=registro_token, nome=data["nome"])
+    def create_helmet(self, data, registro_token):
+        capacete_token = str(uuid.uuid4())
 
-        capacetes_db = []
-        for capacete in data["capacetes"]:
-            capacete_token = str(uuid.uuid4())
+        capacete_db = Capacetes(
+            token=capacete_token,
+            registro_token=registro_token,
+            total_com_capacete=data["total_com_capacete"],
+            total_sem_capacete=data["total_sem_capacete"],
+        )
 
-            capacete_db = Capacetes(
-                token=capacete_token,
-                registro_token=registro_token,
-                total_com_capacete=capacete["total_com_capacete"],
-                total_sem_capacete=capacete["total_sem_capacete"],
-            )
-
-            capacetes_db.append(capacete_db)
-
-        self.session.add(registro_db)
-
-        for capacete in capacetes_db:
-            self.session.add(capacete)
+        self.session.add(capacete_db)
 
         self.session.commit()
 
@@ -141,8 +132,6 @@ class DatabaseBuilder:
                 .filter_by(registro_token=registro_data["token"])
                 .all()
             )
-
-            print(veiculos_query)
 
             veiculos = [VeiculoModel(vei).to_dict() for vei in veiculos_query]
 
@@ -159,8 +148,6 @@ class DatabaseBuilder:
                     .filter_by(veiculo_token=veiculo["token"])
                     .all()
                 )
-
-                print(trajetorias_query)
 
                 trajetorias_data = [
                     TrajetoriaModel(traj).to_dict() for traj in trajetorias_query
@@ -184,8 +171,6 @@ class DatabaseBuilder:
             ]
 
             result["capacetes"] = capacetes_data
-
-            print("resultado: ", result)
 
             return result
         else:
