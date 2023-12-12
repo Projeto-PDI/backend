@@ -46,7 +46,7 @@ def mainRouters(app, auxDB):
                 {"message": f"Error: {e}!"}
             )
 
-    @app.route("/register", methods=["GET"])
+    @app.route("/register/", methods=["GET"])
     def getAllRegister():
         try:
             data = auxDB.get_all_registers()
