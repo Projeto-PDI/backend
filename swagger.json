@@ -1,90 +1,87 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "PDI Transporte",
-    "description": "Backend do projeto de PDI da equipe de transporte.",
-    "version": "1.0"
+      "title": "PDI Transporte",
+      "description": "Backend do projeto de PDI da equipe de transporte.",
+      "version": "1.0"
   },
-
   "basePath": "/",
   "schemes": [
-    "http"
+      "http"
   ],
   "consumes": [
-    "application/json"
+      "application/json"
   ],
   "produces": [
-    "application/json"
+      "application/json"
   ],
   "tags": [
-    {
-      "name": "Products API",
-      "description":"Rotas API"
-    }
+      {
+          "name": "Registro API",
+          "description": "Rotas para gestao de registros"
+      }
   ],
-
   "paths": {
-    "/processar": {
-      "post": {
-        "tags": ["Processamento"],
-        "summary": "Faz o upload e processamento de vídeos e fotos",
-        "description": "Endpoint para upload de vídeos e fotos que serão processados e salvos no banco de dados.",
-        "consumes": ["multipart/form-data"],
-        "parameters": [
-          {
-            "name": "video",
-            "in": "formData",
-            "description": "Vídeo para upload",
-            "required": false,
-            "type": "file"
-          },
-          {
-            "name": "foto",
-            "in": "formData",
-            "description": "Foto para upload",
-            "required": false,
-            "type": "file"
+      "/register": {
+          "post": {
+              "tags": ["Processamento"],
+              "summary": "Cria um novo registro e processa arquivo enviado",
+              "description": "Processa o arquivo enviado, salva as trajetórias e dados do capacete, e retorna o token do registro.",
+              "consumes": [
+                  "multipart/form-data"
+              ],
+              "parameters": [
+                  {
+                      "name": "name",
+                      "in": "formData",
+                      "description": "Nome para o registro",
+                      "required": true,
+                      "type": "string"
+                  },
+                  {
+                      "name": "file",
+                      "in": "formData",
+                      "description": "Arquivo para processamento",
+                      "required": true,
+                      "type": "file"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Registro criado com sucesso."
+                  }
+              }
           }
-        ],
-        "responses": {
-          "200": {
-            "description": "Processamento e salvamento bem-sucedidos."
+      },
+      "/register/": {
+          "get": {
+              "tags": ["Resultados"],
+              "summary": "Obtém todos os registros",
+              "responses": {
+                  "200": {
+                      "description": "Lista de todos os registros."
+                  }
+              }
           }
-        }
+      },
+      "/register/{id}": {
+          "get": {
+              "tags": ["Resultados"],
+              "summary": "Obtém um registro pelo ID",
+              "parameters": [
+                  {
+                      "name": "id",
+                      "in": "path",
+                      "required": true,
+                      "type": "string"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Dados do registro solicitado."
+                  }
+              }
+          }
       }
-    },
-    "/obter/trajetoria": {
-      "get": {
-        "tags": ["Resultados"],
-        "summary": "Obtém a trajetória em formato JSON",
-        "responses": {
-          "200": {
-            "description": "Trajetória obtida com sucesso."
-          }
-        }
-      }
-    },
-    "/obter/capacete": {
-      "get": {
-        "tags": ["Resultados"],
-        "summary": "Obtém informações se há capacete em formato JSON",
-        "responses": {
-          "200": {
-            "description": "Informações do capacete obtidas com sucesso."
-          }
-        }
-      }
-    },
-    "/obter/tipo": {
-      "get": {
-        "tags": ["Resultados"],
-        "summary": "Obtém o tipo em formato JSON",
-        "responses": {
-          "200": {
-            "description": "Tipo obtido com sucesso."
-          }
-        }
-      }
-    }
   }
 }
