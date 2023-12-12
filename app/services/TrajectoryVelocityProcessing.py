@@ -7,9 +7,10 @@ import json
 from json import JSONEncoder
 from io import BytesIO
 import tempfile
-
+import logging
 from ultralytics import YOLO
 
+logging.getLogger("opencv-python").setLevel(logging.ERROR)
 
 class DateTimeEncoder(JSONEncoder):
     def default(self, o):
@@ -120,12 +121,10 @@ class TrajectoryVelocityProcessing:
 
     def process(self, video_data):
         try:
-            # Cria um arquivo temporário para armazenar o conteúdo do vídeo
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_file:
                 temp_file.write(video_data.read())
                 temp_file_path = temp_file.name
 
-            # Leitura do arquivo temporário usando VideoCapture
             cap = cv2.VideoCapture(temp_file_path)
 
             if cap.isOpened() == False:
@@ -202,7 +201,7 @@ class TrajectoryVelocityProcessing:
 
             return output_data
         except Exception as e:
-            return {"error": f"Erro ao processar vídeo: {e}"}
+            raise Exception("Não foi possível abrir captura")
 
 
 class HelmetProcessing:
@@ -251,4 +250,4 @@ class HelmetProcessing:
 
             return dicionario
         except Exception as e:
-            return {"error": f"Erro ao processar vídeo: {e}"}
+            raise Exception("Não foi possível abrir captura")
