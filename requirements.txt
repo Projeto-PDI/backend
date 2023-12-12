@@ -1,7 +1,8 @@
 flask
 sqlalchemy
 mysql-connector-python
-pandas
 python-dotenv
 flask_swagger_ui
-datetime
+pandas
+opencv-python
+ultralytics

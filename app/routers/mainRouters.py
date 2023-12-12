@@ -1,19 +1,64 @@
-from flask import request, redirect, jsonify
-from app.services.processFile import ProcessFile
+from flask import request, redirect, jsonify, render_template
+from app.services.TrajectoryVelocityProcessing import (
+    TrajectoryVelocityProcessing,
+    HelmetProcessing,
+)
+from werkzeug.datastructures import FileStorage
+from io import BytesIO
+
+trajectories_processing = TrajectoryVelocityProcessing()
+helmet_processing = HelmetProcessing()
 
 
 def mainRouters(app, auxDB):
+    @app.route("/", methods=["GET"])
+    def home():
+        return render_template("index.html")
+
     @app.route("/docs", methods=["GET"])
     def default():
         redirect("/swagger")
 
-    @app.route("/file_upload", methods=["POST"])
-    def upload():
+    @app.route("/register", methods=["POST"])
+    def createRegister():
         try:
+            name = request.form["name"]
             file = request.files["file"]
-            file.save(file.filename)
+                
+            traj_data = trajectories_processing.process(file)
+            
+            # Cópia do arquivo para segundo processamento
+            file.stream.seek(0)
+            file_bytes = file.stream.read()
+            file_copy = FileStorage(
+                stream=BytesIO(file_bytes),
+                filename=file.filename,
+                content_type=file.content_type,
+            )
 
-            data = ProcessFile().getInfo(file=file)
+            helmet_data = helmet_processing.process(file_copy)
+            registro_token = auxDB.create_trajectories(traj_data, name)
+            auxDB.create_helmet(helmet_data, registro_token)
+
+            return jsonify(registro_token)
+        except Exception as e:
+            return jsonify(
+                {"message": f"Error: {e}!"}
+            )
+
+    @app.route("/register", methods=["GET"])
+    def getAllRegister():
+        try:
+            data = auxDB.get_all_registers()
+
+            return jsonify(data)
+        except Exception as e:
+            return jsonify({"message": f"Error: {e}!"})
+
+    @app.route("/register/<id>", methods=["GET"])
+    def getRegister(id):
+        try:
+            data = auxDB.get_registro_by_token(id)
 
             return jsonify(data)
         except Exception as e:

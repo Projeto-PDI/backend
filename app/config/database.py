@@ -27,6 +27,7 @@ class Veiculos(Base):
     __tablename__ = "veiculos"
 
     token = Column(String(255), primary_key=True)
+    registro_token = Column(String(255))
     velocidade = Column(Float)
     tipo = Column(String(255))
     start_time = Column(DateTime)
@@ -54,25 +55,26 @@ class Capacetes(Base):
 class DatabaseBuilder:
     def __init__(self):
         engine = create_engine(
-            "mysql+mysqlconnector://root:123456@db:3306/pdi_transport", echo=True
+            "mysql+mysqlconnector://root:123456@localhost:3306/pdi_transport", echo=True
         )
         Base.metadata.create_all(engine)
 
         Session = sessionmaker(bind=engine)
         self.session = Session()
 
-    def create_trajectories(self, data):
-        registro_token = uuid.uuid4()
+    def create_trajectories(self, data, name):
+        registro_token = str(uuid.uuid4())
 
-        registro_db = Registros(token=registro_token, nome=data["nome"])
+        registro_db = Registros(token=registro_token, nome=name)
 
         veiculos_db = []
         trajetorias_db = []
-        for veiculo in data["veiculos"]:
-            veiculo_token = uuid.uuid4()
+        for veiculo in data:
+            veiculo_token = str(uuid.uuid4())
 
             veiculo_db = Veiculos(
                 token=veiculo_token,
+                registro_token=registro_token,
                 velocidade=veiculo["velocidade"],
                 tipo=veiculo["tipo"],
                 start_time=veiculo["start_time"],
@@ -82,7 +84,7 @@ class DatabaseBuilder:
             veiculos_db.append(veiculo_db)
 
             for trajetoria in veiculo["trajetorias"]:
-                trajetoria_token = uuid.uuid4()
+                trajetoria_token = str(uuid.uuid4())
 
                 trajetoria_db = Trajetorias(
                     token=trajetoria_token,
@@ -103,87 +105,90 @@ class DatabaseBuilder:
 
         self.session.commit()
 
-    def create_helmet(self, data):
-        registro_token = uuid.uuid4()
+        return registro_token
 
-        registro_db = Registros(token=registro_token, nome=data["nome"])
+    def create_helmet(self, data, registro_token):
+        capacete_token = str(uuid.uuid4())
 
-        capacetes_db = []
-        for capacetes in data["capacetes"]:
-            capacete_token = uuid.uuid4()
+        print("Criou token")
+        print(data)
+        capacete_db = Capacetes(
+            token=capacete_token,
+            registro_token=registro_token,
+            total_com_capacete=data["total_com_capacete"],
+            total_sem_capacete=data["total_sem_capacete"],
+        )
+        print("Criou Capacete")
 
-            capacete_db = capacetes(
-                token=capacete_token,
-                registro_token=data["registro_token"],
-                total_com_capacete=data["total_com_capacete"],
-                total_sem_capacete=data["total_sem_capacete"],
-            )
-
-            capacetes_db.append(capacete_db)
-
-        self.session.add(registro_db)
-
-        for capacete in capacetes_db:
-            self.session.add(capacete)
+        self.session.add(capacete_db)
 
         self.session.commit()
 
-    def get_trajectories(self, video_name):
-        registro_query = (
-            self.session.query(Registros).filter_by(nome=video_name).first()
+    def get_all_registers(self):
+        registros = self.session.query(Registros).all()
+        result = []
+        for registro in registros:
+            result.append({"id": registro.token, "name": registro.nome})
+        return result
+
+    def get_registro_by_token(self, token):
+        registro = (
+            self.session.query(Registros)
+            .filter(Registros.token == token)
+            .first()
         )
-
-        if registro_query:
-            registro_data = RegistroModel(registro_query).to_dict()
-
-            veiculos_query = (
-                self.session.query(Veiculos)
-                .filter_by(token=registro_data["token"])
-                .all()
-            )
-            veiculos_data = []
-
-            for veiculo in veiculos_query:
-                veiculo_dict = VeiculoModel(veiculo).to_dict()
-
-                trajetorias_query = (
-                    self.session.query(Trajetorias)
-                    .filter_by(veiculo_token=veiculo_dict["token"])
-                    .all()
-                )
-                trajetorias_data = [
-                    TrajetoriaModel(trajetoria).to_dict()
-                    for trajetoria in trajetorias_query
-                ]
-
-                veiculo_dict["trajetorias"] = trajetorias_data
-                veiculos_data.append(veiculo_dict)
-
-            registro_data["veiculos"] = veiculos_data
-
-            return registro_data
-        else:
+        if not registro:
             return None
 
-    def get_helmet(self, video_name):
-        registro_query = (
-            self.session.query(Registros).filter_by(nome=video_name).first()
+        veiculos = (
+            self.session.query(Veiculos)
+            .filter_by(registro_token=token)
+            .all()
         )
 
-        if registro_query:
-            registro_data = RegistroModel(registro_query).to_dict()
-
-            capacetes_query = (
-                self.session.query(Capacetes)
-                .filter_by(registro_token=registro_data["token"])
+        veiculos_data = []
+        for veiculo in veiculos:
+            trajetorias = (
+                self.session.query(Trajetorias)
+                .filter(Trajetorias.veiculo_token == veiculo.token)
                 .all()
             )
-            capacetes_data = [
-                CapaceteModel(capacete).to_dict() for capacete in capacetes_query
-            ]
+            veiculo_data = {
+                "id": veiculo.token,
+                "velocity": veiculo.velocidade,
+                "type": veiculo.tipo,
+                "start_time": veiculo.start_time,
+                "end_time": veiculo.end_time,
+                "trajectories": [
+                    {"x": trajetoria.x, "y": trajetoria.y}
+                    for trajetoria in trajetorias
+                ],
+            }
+            veiculos_data.append(veiculo_data)
 
-            registro_data["capacetes"] = capacetes_data
+        capacete = (
+            self.session.query(Capacetes)
+            .filter(Capacetes.registro_token == token)
+            .first()
+        )
 
-            return registro_data
+        capacete_data = {}
+        if not capacete: 
+            capacete_data = {
+                "total_com_capacete": 0,
+                "total_sem_capacete": 0,
+            }
         else:
-            return None
+            capacete_data = {
+                "total_com_capacete": capacete.total_com_capacete,
+                "total_sem_capacete": capacete.total_sem_capacete,
+            }
+
+        result = {
+            "id": registro.token,
+            "name": registro.nome,
+            "veiculos": veiculos_data,
+            "capacete": capacete_data,
+        }
+
+        return result
