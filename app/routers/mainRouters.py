@@ -1,49 +1,65 @@
-from flask import request, redirect, render_template, jsonify
-from app.services.processFile import ProcessFile
+from flask import request, redirect, jsonify, render_template
+from app.services.TrajectoryVelocityProcessing import (
+    TrajectoryVelocityProcessing,
+    HelmetProcessing,
+)
+from werkzeug.datastructures import FileStorage
+from io import BytesIO
+
+trajectories_processing = TrajectoryVelocityProcessing()
+helmet_processing = HelmetProcessing()
+
 
 def mainRouters(app, auxDB):
-    @app.route('/', methods=['GET'])
-    def default():
-        redirect('/swagger')
-    
-    @app.route('/home', methods=['GET'])
+    @app.route("/", methods=["GET"])
     def home():
-        return render_template('index.html')
-    
-    @app.route('/upload', methods=['POST'])
-    def upload():
-        if request.method == 'POST':
-            file = request.files['file']
-            file.save(file.filename)
+        return render_template("index.html")
 
-            data = ProcessFile().getInfo(file=file)
+    @app.route("/docs", methods=["GET"])
+    def default():
+        redirect("/swagger")
+
+    @app.route("/register", methods=["POST"])
+    def createRegister():
+        try:
+            name = request.form["name"]
+            file = request.files["file"]
+                
+            traj_data = trajectories_processing.process(file)
+            
+            # Cópia do arquivo para segundo processamento
+            file.stream.seek(0)
+            file_bytes = file.stream.read()
+            file_copy = FileStorage(
+                stream=BytesIO(file_bytes),
+                filename=file.filename,
+                content_type=file.content_type,
+            )
+
+            helmet_data = helmet_processing.process(file_copy)
+            registro_token = auxDB.create_trajectories(traj_data, name)
+            auxDB.create_helmet(helmet_data, registro_token)
+
+            return jsonify(registro_token)
+        except Exception as e:
+            return jsonify(
+                {"message": f"Error: {e}!"}
+            )
+
+    @app.route("/register/", methods=["GET"])
+    def getAllRegister():
+        try:
+            data = auxDB.get_all_registers()
 
             return jsonify(data)
-    
-    @app.route('/data', methods=['GET'])
-    def testBD():
-        return jsonify(auxDB.get_all_register())
-    
-    @app.route('/createData', methods=['GET'])
-    def createData():
-        try:
-            auxDB.create_register()
-            return jsonify({"message": "Data created with success!"})
         except Exception as e:
             return jsonify({"message": f"Error: {e}!"})
-    
-    @app.route('/seed', methods=['GET'])
-    def seedData():
+
+    @app.route("/register/<id>", methods=["GET"])
+    def getRegister(id):
         try:
-            auxDB.seed_registers(50) 
-            return jsonify({"message": "Seed with success!"})
+            data = auxDB.get_registro_by_token(id)
+
+            return jsonify(data)
         except Exception as e:
             return jsonify({"message": f"Error: {e}!"})
-        
-    @app.route('/viewData', methods=['GET'])
-    def view_data():
-        try:
-            registers = auxDB.get_all_register()
-            return render_template('view_data.html', registers=registers)
-        except Exception as e:
-            return render_template('error.html', message=f"Error: {e}!")
