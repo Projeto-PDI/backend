@@ -55,7 +55,7 @@ class Capacetes(Base):
 class DatabaseBuilder:
     def __init__(self):
         engine = create_engine(
-            "mysql+mysqlconnector://root:123456@localhost:3306/pdi_transport", echo=True
+            "mysql+mysqlconnector://root:123456@db:3306/pdi_transport", echo=True
         )
         Base.metadata.create_all(engine)
 

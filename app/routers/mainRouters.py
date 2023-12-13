@@ -1,4 +1,4 @@
-from flask import request, redirect, jsonify, render_template
+from flask import request, redirect, jsonify, render_template, url_for
 from app.services.TrajectoryVelocityProcessing import (
     TrajectoryVelocityProcessing,
     HelmetProcessing,
@@ -10,14 +10,12 @@ trajectories_processing = TrajectoryVelocityProcessing()
 helmet_processing = HelmetProcessing()
 
 
+
+
 def mainRouters(app, auxDB):
     @app.route("/", methods=["GET"])
     def home():
-        return render_template("index.html")
-
-    @app.route("/docs", methods=["GET"])
-    def default():
-        redirect("/swagger")
+        return redirect("/swagger")
 
     @app.route("/register", methods=["POST"])
     def createRegister():
