@@ -35,8 +35,9 @@ def mainRouters(app, auxDB):
                 filename=file.filename,
                 content_type=file.content_type,
             )
-
+            
             helmet_data = helmet_processing.process(file_copy)
+            
             registro_token = auxDB.create_trajectories(traj_data, name)
             auxDB.create_helmet(helmet_data, registro_token)
 

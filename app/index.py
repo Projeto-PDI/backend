@@ -3,10 +3,12 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from app.routers.mainRouters import mainRouters
 from app.routers.swaggerRoutes import swwagerRoutes
 from app.config.database import DatabaseBuilder
+from flask_cors import CORS
 
 def createApp():
     # Config of app and Database
     app = Flask(__name__)
+    CORS(app)
     auxDB = DatabaseBuilder()
 
     # Configure Swagger UI

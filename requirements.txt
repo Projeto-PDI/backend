@@ -6,3 +6,4 @@ flask_swagger_ui
 pandas
 opencv-python
 ultralytics
+flask-cors
